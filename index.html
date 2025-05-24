@@ -11,19 +11,19 @@
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
             background: #f8f9fa;
             color: #333;
             height: 100vh;
             overflow: hidden;
         }
-        
-        #map { 
+
+        #map {
             width: 100%;
-            height: 100%; 
+            height: 100%;
         }
 
         #map-controls {
@@ -36,29 +36,29 @@
             border-radius: 6px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
             max-width: 320px;
-            display: none; 
+            display: none;
         }
-        
+
         .controls-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
         }
-        
+
         .controls-header h2 {
             margin: 0;
             color: #2c3e50;
             font-size: 16px;
             font-weight: 500;
         }
-        
+
         .button-group {
             display: flex;
             gap: 6px;
             margin-left: 1rem;
         }
-        
+
         #map-controls button {
             padding: 6px 10px;
             border: 1px solid #cccccc;
@@ -74,7 +74,7 @@
             background-color: #e0e0e0;
             border-color: #bbbbbb;
         }
-        
+
         #map-controls #reloadData { background: #d9534f; color: white; border-color: #d43f3a; }
         #map-controls #reloadData:hover { background: #c9302c; }
 
@@ -89,32 +89,32 @@
         }
 
         .filter-section label {
-            font-size: 13px; 
-            display: block; 
-            margin-bottom: 5px; 
-            font-weight: 500; 
+            font-size: 13px;
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
             color: #333;
         }
         #zoneSelect, #searchInput {
-            width: 100%; 
-            padding: 7px 9px; 
-            border-radius: 4px; 
-            border: 1px solid #ccc; 
+            width: 100%;
+            padding: 7px 9px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
             font-size: 13px;
             background-color: white;
             box-sizing: border-box;
         }
-        
+
         #assetTypeFiltersGrid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr; /* Changed for consistent single column layout */
             gap: 6px;
             margin-top: 8px;
-            max-height: calc(100vh - 300px); /* Adjusted for zone and search filters */
+            max-height: calc(100vh - 350px); /* Adjusted for controls height */
             overflow-y: auto;
             padding-right: 5px;
         }
-        
+
         .filter-item {
             background: #ffffff;
             padding: 7px 9px;
@@ -123,17 +123,17 @@
             transition: border-color 0.2s ease, background-color 0.2s ease;
             cursor: pointer;
         }
-        
+
         .filter-item:hover {
             border-color: #3498db;
             background-color: #f0f8ff;
         }
-        
+
         .filter-item.active {
             background: #e9f5ff;
             border-color: #2196f3;
         }
-        
+
         .filter-item label {
             display: flex;
             align-items: center;
@@ -142,13 +142,13 @@
             color: #333;
             font-size: 13px;
         }
-        
+
         .filter-item input[type="checkbox"] {
             margin-right: 8px;
             transform: scale(1.0);
             accent-color: #3498db;
         }
-        
+
         .loading-spinner {
             border: 3px solid #f0f0f0;
             border-top: 3px solid #3498db;
@@ -161,14 +161,14 @@
             left: 50%;
             margin-top: -15px;
             margin-left: -15px;
-            z-index: 1001; 
+            z-index: 1001;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         .legend {
             padding: 10px 12px;
             font: 13px/1.5 'Segoe UI', Arial, sans-serif;
@@ -180,14 +180,14 @@
             max-height: calc(100vh - 100px);
             overflow-y: auto;
         }
-        
+
         .legend h4 {
             margin: 0 0 8px 0;
             color: #2c3e50;
             font-weight: 500;
             font-size: 14px;
         }
-        
+
         .legend-item {
             display: flex;
             align-items: center;
@@ -196,9 +196,9 @@
             border-radius: 3px;
             transition: background 0.2s ease;
         }
-        
+
         .legend-item:hover { background: #f0f0f0; }
-        
+
         .legend-icon {
             width: 12px;
             height: 12px;
@@ -206,14 +206,14 @@
             border-radius: 50%;
             border: 1px solid rgba(0,0,0,0.1);
         }
-        
+
         .message {
             padding: 12px 15px;
             position: absolute;
             top: 10px;
             left: 50%;
             transform: translateX(-50%);
-            min-width: 200px; 
+            min-width: 200px;
             text-align: center;
             border-radius: 4px;
             font-weight: 400;
@@ -222,7 +222,7 @@
             font-size: 14px;
             z-index: 1002;
         }
-        
+
         .error-message { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
         .status-message { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
 
@@ -261,14 +261,14 @@
             <!-- Asset Type Filters will be populated here by JS -->
         </div>
     </div>
-    
+
     <div id="loading" class="loading-spinner" style="display: none;"></div>
     <div id="error-message" class="message error-message"></div>
     <div id="status-message" class="message status-message"></div>
 
     <script>
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQffbSPryot5eCl1lZC4yexYP4A5AyIqqpdDm8Q7H2UWnZ5Nq-kTSDe1CMeG3gI6Huj8bOHevOpEfWh/pub?gid=0&single=true&output=csv';
-       
+
         const CORS_PROXIES = [
             { name: 'Direct', url: '', needsEncoding: false },
             { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url=', needsEncoding: true },
@@ -284,7 +284,7 @@
         const map = L.map('map').setView([22.5937, 78.9629], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             minZoom: 3,
         }).addTo(map);
 
@@ -297,15 +297,16 @@
         const zoneSelect = document.getElementById('zoneSelect');
         const searchInput = document.getElementById('searchInput');
 
-        let allMarkers = []; 
+        let allMarkers = [];
         let assetTypes = new Set();
         let uniqueZones = new Set();
         let legend;
         let assetsData = [];
-        let colorMap = {}; 
-        let filteredMarkersGroup; 
+        let colorMap = {};
+        let filteredMarkersGroup;
 
-        function createPinIcon(color) {
+        // --- START: ICON CREATION FUNCTIONS ---
+        function createTeardropPinIcon(color) { // Renamed from createPinIcon
             const bodySize = 12; const borderSize = 2; const dotSize = 3;
             const dotOffset = (bodySize - dotSize) / 2;
             const leafletIconSizeVal = bodySize + (borderSize * 2) + 4;
@@ -315,7 +316,7 @@
                     background-color: ${color};
                     width: ${bodySize}px;
                     height: ${bodySize}px;
-                    border: ${borderSize}px solid ${color}; /* MODIFIED: border color is same as fill color */
+                    border: ${borderSize}px solid ${color};
                     border-radius: 50% 50% 50% 0;
                     transform: rotate(-45deg);
                     box-shadow: 0 1px 3px rgba(0,0,0,0.25);
@@ -331,10 +332,53 @@
                         left: ${dotOffset}px;
                     "></div>
                 </div>`,
-                iconSize: [leafletIconSizeVal, leafletIconSizeVal], iconAnchor: [leafletIconSizeVal / 2, leafletIconSizeVal], popupAnchor: [0, -leafletIconSizeVal]
+                iconSize: [leafletIconSizeVal, leafletIconSizeVal],
+                iconAnchor: [leafletIconSizeVal / 2, leafletIconSizeVal], // Tip of the teardrop
+                popupAnchor: [0, -leafletIconSizeVal]
             });
         }
-        
+
+        function createCircleIcon(color) {
+            const size = 14;
+            const borderThickness = 1;
+            const iconHtmlSize = size + (borderThickness * 2);
+            return L.divIcon({
+                className: 'custom-circle-pin',
+                html: `<div style="
+                    background-color: ${color};
+                    width: ${size}px;
+                    height: ${size}px;
+                    border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'};
+                    border-radius: 50%;
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [iconHtmlSize, iconHtmlSize],
+                iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2],
+                popupAnchor: [0, -iconHtmlSize / 2]
+            });
+        }
+
+        function createSquareIcon(color) {
+            const size = 14;
+            const borderThickness = 1;
+            const iconHtmlSize = size + (borderThickness * 2);
+            return L.divIcon({
+                className: 'custom-square-pin',
+                html: `<div style="
+                    background-color: ${color};
+                    width: ${size}px;
+                    height: ${size}px;
+                    border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'};
+                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [iconHtmlSize, iconHtmlSize],
+                iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2],
+                popupAnchor: [0, -iconHtmlSize / 2]
+            });
+        }
+        // --- END: ICON CREATION FUNCTIONS ---
+
+
         function showError(message) { errorMessage.textContent = message; errorMessage.style.display = 'block'; statusMessage.style.display = 'none'; console.error(message); }
         function showStatus(message) { statusMessage.textContent = message; statusMessage.style.display = 'block'; errorMessage.style.display = 'none'; }
         function hideMessages() { errorMessage.style.display = 'none'; statusMessage.style.display = 'none'; }
@@ -373,7 +417,7 @@
             legend = L.control({position: 'bottomright'});
             legend.onAdd = function (mapCtrl) {
                 const div = L.DomUtil.create('div', 'legend');
-                const types = Array.from(assetTypes).sort(); 
+                const types = Array.from(assetTypes).sort();
                 div.innerHTML = '<h4>📍 Asset Types</h4>';
                 types.forEach(type => {
                     const color = colorMap[type] || '#777777';
@@ -386,9 +430,9 @@
 
         function populateZoneFilter() {
             const sortedZones = Array.from(uniqueZones).sort();
-            zoneSelect.innerHTML = '<option value="all">All Zones</option>'; 
+            zoneSelect.innerHTML = '<option value="all">All Zones</option>';
             sortedZones.forEach(zone => {
-                if (zone && zone.trim() !== '' && zone !== 'Unknown Zone') { 
+                if (zone && zone.trim() !== '' && zone !== 'Unknown Zone') {
                     const option = document.createElement('option');
                     option.value = zone;
                     option.textContent = zone;
@@ -404,18 +448,18 @@
         }
 
         function updateFiltersUI() {
-            assetTypeFiltersContainer.innerHTML = ''; 
+            assetTypeFiltersContainer.innerHTML = '';
             const sortedAssetTypes = Array.from(assetTypes).sort();
 
             if (sortedAssetTypes.length === 0 && uniqueZones.size === 0) {
                 const p = document.createElement('p');
                 p.style.cssText = "font-size:12px; color: #777; padding: 5px 0;";
                 p.textContent = "No asset types or zones found.";
-                assetTypeFiltersContainer.appendChild(p); 
+                assetTypeFiltersContainer.appendChild(p);
                 mapControlsPanel.style.display = 'block';
                 return;
             }
-            
+
             if (sortedAssetTypes.length > 0) {
                 sortedAssetTypes.forEach((type) => {
                     const color = colorMap[type];
@@ -449,8 +493,8 @@
         }
 
         function applyAllFilters() {
-            if (!filteredMarkersGroup) return; 
-            
+            if (!filteredMarkersGroup) return;
+
             filteredMarkersGroup.clearLayers();
 
             const checkedAssetTypes = new Set();
@@ -464,24 +508,24 @@
                 const assetData = marker.assetData;
                 if (assetData) {
                     let effectiveTypeMatch;
-                    if (assetTypes.size > 0 && checkedAssetTypes.size === 0) { 
+                    if (assetTypes.size > 0 && checkedAssetTypes.size === 0) {
                         effectiveTypeMatch = false;
-                    } else if (assetTypes.size === 0) { 
+                    } else if (assetTypes.size === 0) {
                         effectiveTypeMatch = true;
-                    } else { 
+                    } else {
                         effectiveTypeMatch = checkedAssetTypes.has(assetData.type);
                     }
-                    
+
                     const zoneMatch = (selectedZone === 'all' || assetData.zone === selectedZone);
 
-                    let searchMatch = true; 
+                    let searchMatch = true;
                     if (searchTerm) {
                         searchMatch = (assetData.name.toLowerCase().includes(searchTerm) ||
                                        assetData.description.toLowerCase().includes(searchTerm) ||
                                        assetData.type.toLowerCase().includes(searchTerm) ||
                                        (assetData.zone && assetData.zone.toLowerCase().includes(searchTerm)));
                     }
-                    
+
                     if (effectiveTypeMatch && zoneMatch && searchMatch) {
                         filteredMarkersGroup.addLayer(marker);
                         visibleMarkersCount++;
@@ -492,17 +536,17 @@
 
         reloadButton.addEventListener('click', () => loadDataAndPlot());
         zoneSelect.addEventListener('change', applyAllFilters);
-        searchInput.addEventListener('input', applyAllFilters); 
+        searchInput.addEventListener('input', applyAllFilters);
 
         async function loadDataAndPlot() {
             loadingSpinner.style.display = 'block';
             hideMessages();
             mapControlsPanel.style.display = 'none';
-            showStatus("Loading..."); 
+            showStatus("Loading...");
 
             try {
                 let csvText, lastError;
-                for (const proxy of CORS_PROXIES) { 
+                for (const proxy of CORS_PROXIES) {
                     const uniqueParam = '&_=' + new Date().getTime();
                     const urlToTry = proxy.url === '' ? GOOGLE_SHEET_CSV_URL + uniqueParam : proxy.url + (proxy.needsEncoding ? encodeURIComponent(GOOGLE_SHEET_CSV_URL + uniqueParam) : GOOGLE_SHEET_CSV_URL + uniqueParam);
                     try {
@@ -510,7 +554,7 @@
                         if (response && response.ok) {
                             const text = await response.text();
                             if (text && text.trim().length > 0 && !text.trim().toLowerCase().startsWith('<html')) {
-                                csvText = text; 
+                                csvText = text;
                                 break;
                             } else throw new Error(`Empty/HTML response from ${proxy.name}`);
                         } else throw new Error(`HTTP ${response?.status || 'Err'}: ${response?.statusText || 'Fail'} from ${proxy.name}`);
@@ -525,7 +569,7 @@
                 assetTypes.clear();
                 uniqueZones.clear();
                 colorMap = {};
-                searchInput.value = ''; 
+                searchInput.value = '';
 
                 if (filteredMarkersGroup) {
                     filteredMarkersGroup.clearLayers();
@@ -549,32 +593,57 @@
                         const lat = parseFloat(asset.Latitude || asset.latitude || asset.lat);
                         const lon = parseFloat(asset.Longitude || asset.longitude || asset.lng || asset.lon);
                         const type = asset.AssetType || asset['Asset Type'] || asset.Type || asset.type || 'Unknown Type';
-                        const zone = (asset.Zone || asset.zone || '').trim() || 'Unknown Zone'; 
+                        const zone = (asset.Zone || asset.zone || '').trim() || 'Unknown Zone';
                         const name = asset.Name || asset.name || `Asset ${index + 1}`;
                         const description = asset.Description || asset.description || 'N/A';
                         const iconColor = colorMap[type];
+
+                        // --- START: MODIFIED ICON LOGIC ---
+                        const markerStyleRaw = asset.MarkerStyle || asset['Marker Style'] || asset.marker_style || asset.IconStyle || asset['Icon Style'] || asset.icon_style;
+                        const markerStyle = (markerStyleRaw || '').toLowerCase().trim();
+
+                        let markerIcon;
+                        let tooltipOffsetY;
+
+                        switch (markerStyle) {
+                            case 'circle':
+                                markerIcon = createCircleIcon(iconColor);
+                                tooltipOffsetY = -((14 + 2*1)/2 + 5); // Approx center to top + padding
+                                break;
+                            case 'square':
+                                markerIcon = createSquareIcon(iconColor);
+                                tooltipOffsetY = -((14 + 2*1)/2 + 5); // Approx center to top + padding
+                                break;
+                            case 'teardrop':
+                            default:
+                                markerIcon = createTeardropPinIcon(iconColor);
+                                const teardropIconSize = (12 + (2 * 2) + 4);
+                                tooltipOffsetY = -(teardropIconSize * 0.9); // Adjusted for teardrop anchor
+                                break;
+                        }
+                        // --- END: MODIFIED ICON LOGIC ---
+
 
                         if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && (lat !== 0 || lon !== 0)) {
                             assetTypes.add(type);
                             uniqueZones.add(zone);
 
-                            const marker = L.marker([lat, lon], { icon: createPinIcon(iconColor) });
-                            marker.assetData = { 
-                                type: type, 
-                                zone: zone, 
-                                name: name, 
-                                description: description, 
-                                lat: lat, 
-                                lon: lon 
-                            }; 
+                            const marker = L.marker([lat, lon], { icon: markerIcon }); // Use the dynamically chosen icon
+                            marker.assetData = {
+                                type: type,
+                                zone: zone,
+                                name: name,
+                                description: description,
+                                lat: lat,
+                                lon: lon
+                            };
 
                             const popupContent = `<div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;"><h3 style="margin:0 0 8px;color:${iconColor};border-bottom:1px solid ${iconColor};padding-bottom:4px;font-size:16px;">${name}</h3><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Type:</strong> <span style="color:${iconColor};">${type}</span></p><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Zone:</strong> ${zone === 'Unknown Zone' ? 'N/A' : zone}</p><p style="margin:8px 0;color:#444;line-height:1.4;font-size:13px;">${description}</p><p style="margin:4px 0;font-size:11px;color:#777;">Coords: ${lat.toFixed(4)}, ${lon.toFixed(4)}</p></div>`;
                             marker.bindPopup(popupContent, { maxWidth: 280, className: 'custom-popup' });
-                            
-                            const leafletIconSizeVal = (12 + (2 * 2) + 4);
-                            marker.bindTooltip(name, { permanent: false, direction: 'top', offset: [0, - (leafletIconSizeVal * 0.75) ], className: 'custom-tooltip' }); 
+
+                            marker.bindTooltip(name, { permanent: false, direction: 'top', offset: [0, tooltipOffsetY], className: 'custom-tooltip' });
                             marker.on('mouseover', function(e) { this.openTooltip(); });
-                            
+
                             allMarkers.push(marker);
                             processedCount++;
                         } else { skippedCount++; }
@@ -588,24 +657,24 @@
                 }
 
                 updateFiltersUI();
-                applyAllFilters(); 
+                applyAllFilters();
 
-                showStatus("Successfully Loaded"); 
+                showStatus("Successfully Loaded");
                 if (allMarkers.length > 0) {
                     const boundsGroup = filteredMarkersGroup.getLayers().length > 0 ? filteredMarkersGroup : L.featureGroup(allMarkers);
                     if (boundsGroup.getLayers().length > 0) {
                         map.fitBounds(boundsGroup.getBounds().pad(0.15));
-                    } else if (allMarkers.length > 0) { 
+                    } else if (allMarkers.length > 0) { // Fallback if all are filtered out initially
                         map.fitBounds(L.featureGroup(allMarkers).getBounds().pad(0.15));
                     }
                 }
-                setTimeout(hideMessages, 5000); 
+                setTimeout(hideMessages, 5000);
 
             } catch (error) {
-                showError("Loading Failed"); 
-                console.error("Detailed loading error:", error.message, error); 
-                mapControlsPanel.style.display = 'block'; 
-                updateFiltersUI(); 
+                showError("Loading Failed");
+                console.error("Detailed loading error:", error.message, error);
+                mapControlsPanel.style.display = 'block'; // Show controls even on fail
+                updateFiltersUI(); // Try to populate with what might be available
             } finally {
                 loadingSpinner.style.display = 'none';
             }
