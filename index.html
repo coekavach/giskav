@@ -107,10 +107,10 @@
 
         #assetTypeFiltersGrid {
             display: grid;
-            grid-template-columns: 1fr; /* Changed for consistent single column layout */
+            grid-template-columns: 1fr;
             gap: 6px;
             margin-top: 8px;
-            max-height: calc(100vh - 350px); /* Adjusted for controls height */
+            max-height: calc(100vh - 350px);
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -205,7 +205,18 @@
             margin-right: 10px;
             border-radius: 50%;
             border: 1px solid rgba(0,0,0,0.1);
+            flex-shrink: 0; /* Prevent shrinking if text is long */
         }
+        /* For legend items that use SVG icons */
+        .legend-icon-svg {
+            display: inline-flex; /* Or inline-block */
+            align-items: center;
+            justify-content: center;
+            line-height: 0; /* Important for SVG alignment */
+            /* width and height will be set by style attribute */
+             margin-right: 10px;
+        }
+
 
         .message {
             padding: 12px 15px;
@@ -234,6 +245,19 @@
             margin: 12px;
             line-height: 1.5;
         }
+         .custom-tooltip {
+            font-size: 10px; /* General tooltip size, can be adjusted per icon if needed */
+            background: rgba(0, 0, 0, 0.8); 
+            color: white;
+            border-radius: 3px;
+            padding: 3px 6px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            border: none;
+        }
+        .custom-tooltip .leaflet-tooltip-tip {
+             border-top-color: rgba(0, 0, 0, 0.8);
+        }
+        .svg-marker {} /* General class */
     </style>
 </head>
 <body>
@@ -254,11 +278,9 @@
             <label for="zoneSelect">Zone:</label>
             <select id="zoneSelect">
                 <option value="all">All Zones</option>
-                <!-- Zones will be populated here by JS -->
             </select>
         </div>
         <div id="assetTypeFiltersGrid" class="filter-section">
-            <!-- Asset Type Filters will be populated here by JS -->
         </div>
     </div>
 
@@ -281,7 +303,7 @@
             '#4caf50', '#ff9800', '#673ab7', '#795548', '#607d8b'
         ];
 
-        const map = L.map('map').setView([22.5937, 78.9629], 5);
+        const map = L.map('map').setView([22.5937, 78.9629], 5); // Initial zoom 6
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -306,78 +328,50 @@
         let filteredMarkersGroup;
 
         // --- START: ICON CREATION FUNCTIONS ---
-        function createTeardropPinIcon(color) { // Renamed from createPinIcon
+        function createTeardropPinIcon(color) {
             const bodySize = 12; const borderSize = 2; const dotSize = 3;
             const dotOffset = (bodySize - dotSize) / 2;
             const leafletIconSizeVal = bodySize + (borderSize * 2) + 4;
-            return L.divIcon({
-                className: 'minimal-teardrop-pin',
-                html: `<div style="
-                    background-color: ${color};
-                    width: ${bodySize}px;
-                    height: ${bodySize}px;
-                    border: ${borderSize}px solid ${color};
-                    border-radius: 50% 50% 50% 0;
-                    transform: rotate(-45deg);
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-                    position: relative;
-                ">
-                    <div style="
-                        width: ${dotSize}px;
-                        height: ${dotSize}px;
-                        background: white;
-                        border-radius: 50%;
-                        position: absolute;
-                        top: ${dotOffset}px;
-                        left: ${dotOffset}px;
-                    "></div>
-                </div>`,
-                iconSize: [leafletIconSizeVal, leafletIconSizeVal],
-                iconAnchor: [leafletIconSizeVal / 2, leafletIconSizeVal], // Tip of the teardrop
-                popupAnchor: [0, -leafletIconSizeVal]
-            });
+            return L.divIcon({ className: 'minimal-teardrop-pin', html: `<div style="background-color: ${color}; width: ${bodySize}px; height: ${bodySize}px; border: ${borderSize}px solid ${color}; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 1px 3px rgba(0,0,0,0.25); position: relative;"><div style="width: ${dotSize}px; height: ${dotSize}px; background: white; border-radius: 50%; position: absolute; top: ${dotOffset}px; left: ${dotOffset}px;"></div></div>`, iconSize: [leafletIconSizeVal, leafletIconSizeVal], iconAnchor: [leafletIconSizeVal / 2, leafletIconSizeVal], popupAnchor: [0, -leafletIconSizeVal] });
         }
 
         function createCircleIcon(color) {
-            const size = 14;
-            const borderThickness = 1;
-            const iconHtmlSize = size + (borderThickness * 2);
-            return L.divIcon({
-                className: 'custom-circle-pin',
-                html: `<div style="
-                    background-color: ${color};
-                    width: ${size}px;
-                    height: ${size}px;
-                    border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'};
-                    border-radius: 50%;
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-                "></div>`,
-                iconSize: [iconHtmlSize, iconHtmlSize],
-                iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2],
-                popupAnchor: [0, -iconHtmlSize / 2]
-            });
+            const size = 14; const borderThickness = 1; const iconHtmlSize = size + (borderThickness * 2);
+            return L.divIcon({ className: 'custom-circle-pin', html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'}; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`, iconSize: [iconHtmlSize, iconHtmlSize], iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2], popupAnchor: [0, -iconHtmlSize / 2] });
         }
 
         function createSquareIcon(color) {
-            const size = 14;
-            const borderThickness = 1;
-            const iconHtmlSize = size + (borderThickness * 2);
-            return L.divIcon({
-                className: 'custom-square-pin',
-                html: `<div style="
-                    background-color: ${color};
-                    width: ${size}px;
-                    height: ${size}px;
-                    border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'};
-                    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-                "></div>`,
-                iconSize: [iconHtmlSize, iconHtmlSize],
-                iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2],
-                popupAnchor: [0, -iconHtmlSize / 2]
-            });
+            const size = 14; const borderThickness = 1; const iconHtmlSize = size + (borderThickness * 2);
+            return L.divIcon({ className: 'custom-square-pin', html: `<div style="background-color: ${color}; width: ${size}px; height: ${size}px; border: ${borderThickness}px solid ${ (color.toLowerCase() === 'white' || color.toLowerCase() === '#ffffff') ? '#aaaaaa' : 'rgba(255,255,255,0.7)'}; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`, iconSize: [iconHtmlSize, iconHtmlSize], iconAnchor: [iconHtmlSize / 2, iconHtmlSize / 2], popupAnchor: [0, -iconHtmlSize / 2] });
+        }
+
+        function createPushPinIconMicro(color) { // 9x14px
+            const iconWidth = 9; const iconHeight = 14; const vbWidth = 9; const vbHeight = 14;
+            const headRadius = 3; const headCenterX = vbWidth / 2; const headCenterY = headRadius;
+            const needleTopY = headCenterY + headRadius * 0.25; const needleBottomY = vbHeight - 0.5; const needleWidth = 1; 
+            const highlightRadius = 0.75; const highlightCx = headCenterX - headRadius * 0.3; const highlightCy = headCenterY - headRadius * 0.3;
+            const iconHTML = `<svg width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${vbWidth} ${vbHeight}" style="overflow: visible;"><defs><filter id="svg_pushpin_dropshadow_micro" x="-80%" y="-80%" width="260%" height="260%"><feDropShadow dx="0.4" dy="0.6" stdDeviation="0.5" flood-color="#000000" flood-opacity="0.3"/></filter></defs><g><line x1="${headCenterX}" y1="${needleTopY}" x2="${headCenterX}" y2="${needleBottomY}" stroke="#606060" stroke-width="${needleWidth}" stroke-linecap="round" /><circle cx="${headCenterX}" cy="${headCenterY}" r="${headRadius}" fill="${color}" filter="url(#svg_pushpin_dropshadow_micro)"/><circle cx="${highlightCx}" cy="${highlightCy}" r="${highlightRadius}" fill="white" opacity="0.35"/></g></svg>`;
+            return L.divIcon({ className: 'svg-marker', html: iconHTML, iconSize: [iconWidth, iconHeight], iconAnchor: [iconWidth / 2, iconHeight], popupAnchor: [0, -(iconHeight - headCenterY + 1)] });
+        }
+        
+        function createPushPinIcon(color) { // Slightly larger pushpin: 16x24px
+            const iconWidth = 16; const iconHeight = 24;
+            const vbWidth = 16; const vbHeight = 24;
+            const headRadius = 5; const headCenterX = vbWidth / 2; const headCenterY = headRadius;
+            const needleTopY = headCenterY + headRadius * 0.4; const needleBottomY = vbHeight - 1; const needleWidth = 1.5;
+            const highlightRadius = headRadius * 0.3; const highlightCx = headCenterX - headRadius * 0.35; const highlightCy = headCenterY - headRadius * 0.35;
+            const iconHTML = `<svg width="${iconWidth}" height="${iconHeight}" viewBox="0 0 ${vbWidth} ${vbHeight}" style="overflow: visible;"><defs><filter id="svg_pushpin_dropshadow_small" x="-60%" y="-60%" width="220%" height="220%"><feDropShadow dx="0.8" dy="1" stdDeviation="0.8" flood-color="#000000" flood-opacity="0.35"/></filter></defs><g><line x1="${headCenterX}" y1="${needleTopY}" x2="${headCenterX}" y2="${needleBottomY}" stroke="#505050" stroke-width="${needleWidth}" stroke-linecap="round" /><circle cx="${headCenterX}" cy="${headCenterY}" r="${headRadius}" fill="${color}" filter="url(#svg_pushpin_dropshadow_small)"/><circle cx="${highlightCx}" cy="${highlightCy}" r="${highlightRadius}" fill="white" opacity="0.45"/></g></svg>`;
+            return L.divIcon({ className: 'svg-marker', html: iconHTML, iconSize: [iconWidth, iconHeight], iconAnchor: [iconWidth / 2, iconHeight], popupAnchor: [0, -(iconHeight - headCenterY + 2)] });
+        }
+
+        function createLocoIcon(color) { // Micro colorable loco: 20x12px
+            const iconDisplayWidth = 20; 
+            const svgViewBoxWidth = 100; const svgViewBoxHeight = 60;
+            const iconDisplayHeight = Math.round(iconDisplayWidth * (svgViewBoxHeight / svgViewBoxWidth));
+            const svgString = `<svg viewBox="0 0 ${svgViewBoxWidth} ${svgViewBoxHeight}" xmlns="http://www.w3.org/2000/svg" width="${iconDisplayWidth}" height="${iconDisplayHeight}" style="transform: scale(1);"><circle cx="20" cy="50" r="8" fill="#282828"/><circle cx="45" cy="50" r="8" fill="#282828"/><circle cx="70" cy="50" r="8" fill="#282828"/><rect x="5" y="20" width="80" height="25" fill="${color}"/><rect x="55" y="5" width="30" height="25" fill="#787878"/><rect x="60" y="10" width="15" height="10" fill="#B0B0B0" stroke="#1E1E1E" stroke-width="0.5"/><rect x="5" y="15" width="25" height="20" fill="#404040"/><rect x="12" y="5" width="8" height="10" fill="#1E1E1E"/><circle cx="8" cy="25" r="3" fill="#D3D3D3" stroke="#1E1E1E" stroke-width="0.5"/><rect x="85" y="30" width="10" height="5" fill="#333333"/></svg>`.trim();
+            return L.divIcon({ className: 'svg-marker loco-marker', html: svgString, iconSize: [iconDisplayWidth, iconDisplayHeight], iconAnchor: [iconDisplayWidth / 2, iconDisplayHeight], popupAnchor: [0, -iconDisplayHeight - 2] });
         }
         // --- END: ICON CREATION FUNCTIONS ---
-
 
         function showError(message) { errorMessage.textContent = message; errorMessage.style.display = 'block'; statusMessage.style.display = 'none'; console.error(message); }
         function showStatus(message) { statusMessage.textContent = message; statusMessage.style.display = 'block'; errorMessage.style.display = 'none'; }
@@ -387,27 +381,9 @@
             try {
                 const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== '');
                 if (lines.length === 0) throw new Error('CSV file is empty');
-                function parseCSVLine(line) {
-                    const result = []; let current = ''; let inQuotes = false;
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-                        if (char === '"' && (i === 0 || line[i-1] !== '\\')) inQuotes = !inQuotes;
-                        else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
-                        else current += char;
-                    }
-                    result.push(current.trim());
-                    return result.map(val => val.startsWith('"') && val.endsWith('"') ? val.slice(1, -1).replace(/""/g, '"') : val);
-                }
-                const headers = parseCSVLine(lines[0]).map(header => header.trim());
-                const data = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const values = parseCSVLine(lines[i]);
-                    if (values.length >= headers.length && values.some(v => v.trim() !== '')) {
-                        const entry = {};
-                        headers.forEach((header, index) => { entry[header] = values[index] ? values[index].trim() : ''; });
-                        data.push(entry);
-                    }
-                }
+                function parseCSVLine(line) { const result = []; let current = ''; let inQuotes = false; for (let i = 0; i < line.length; i++) { const char = line[i]; if (char === '"' && (i === 0 || line[i-1] !== '\\')) inQuotes = !inQuotes; else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; } else current += char; } result.push(current.trim()); return result.map(val => val.startsWith('"') && val.endsWith('"') ? val.slice(1, -1).replace(/""/g, '"') : val); }
+                const headers = parseCSVLine(lines[0]).map(header => header.trim()); const data = [];
+                for (let i = 1; i < lines.length; i++) { const values = parseCSVLine(lines[i]); if (values.length >= headers.length && values.some(v => v.trim() !== '')) { const entry = {}; headers.forEach((header, index) => { entry[header] = values[index] ? values[index].trim() : ''; }); data.push(entry); } }
                 return data;
             } catch (error) { throw new Error(`CSV parsing failed: ${error.message}`); }
         }
@@ -419,10 +395,22 @@
                 const div = L.DomUtil.create('div', 'legend');
                 const types = Array.from(assetTypes).sort();
                 div.innerHTML = '<h4>📍 Asset Types</h4>';
-                types.forEach(type => {
-                    const color = colorMap[type] || '#777777';
-                    div.innerHTML += `<div class="legend-item"><div class="legend-icon" style="background-color:${color};"></div><span>${type}</span></div>`;
-                });
+                if (types.length > 0) {
+                    types.forEach(type => {
+                        const color = colorMap[type] || '#777777';
+                        let iconHtml = `<div class="legend-icon" style="background-color:${color};"></div>`;
+                        // Example: if a specific asset type is *always* displayed as a loco or specific pushpin
+                        // This logic needs to know the intended MarkerStyle for an AssetType to accurately reflect in legend
+                        // For simplicity, this example primarily uses the color.
+                        // More complex: store intended markerStyle per AssetType if that's how data is structured.
+                        if (type.toLowerCase().includes('loco')) { // Example condition
+                            const legendLocoWidth = 16; const legendLocoHeight = Math.round(legendLocoWidth * (60 / 100));
+                            const legendLocoSvg = `<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg" width="${legendLocoWidth}" height="${legendLocoHeight}"><circle cx="20" cy="50" r="8" fill="#282828"/><circle cx="45" cy="50" r="8" fill="#282828"/><circle cx="70" cy="50" r="8" fill="#282828"/><rect x="5" y="20" width="80" height="25" fill="${color}"/><rect x="55" y="5" width="30" height="25" fill="#787878"/><rect x="60" y="10" width="15" height="10" fill="#B0B0B0" stroke="#1E1E1E" stroke-width="0.5"/><rect x="5" y="15" width="25" height="20" fill="#404040"/><rect x="12" y="5" width="8" height="10" fill="#1E1E1E"/><circle cx="8" cy="25" r="3" fill="#D3D3D3" stroke="#1E1E1E" stroke-width="0.5"/><rect x="85" y="30" width="10" height="5" fill="#333333"/></svg>`.trim();
+                            iconHtml = `<div class="legend-icon-svg" style="width:${legendLocoWidth}px; height:${legendLocoHeight}px;">${legendLocoSvg}</div>`;
+                        }
+                        div.innerHTML += `<div class="legend-item">${iconHtml}<span>${type}</span></div>`;
+                    });
+                } else { div.innerHTML += '<p style="font-size:12px; color:#777;">No asset types found.</p>'; }
                 return div;
             };
             legend.addTo(map);
@@ -431,107 +419,23 @@
         function populateZoneFilter() {
             const sortedZones = Array.from(uniqueZones).sort();
             zoneSelect.innerHTML = '<option value="all">All Zones</option>';
-            sortedZones.forEach(zone => {
-                if (zone && zone.trim() !== '' && zone !== 'Unknown Zone') {
-                    const option = document.createElement('option');
-                    option.value = zone;
-                    option.textContent = zone;
-                    zoneSelect.appendChild(option);
-                }
-            });
-            if (uniqueZones.has('Unknown Zone')) {
-                 const option = document.createElement('option');
-                 option.value = 'Unknown Zone';
-                 option.textContent = 'Unknown / Not Specified';
-                 zoneSelect.appendChild(option);
-            }
+            sortedZones.forEach(zone => { if (zone && zone.trim() !== '' && zone !== 'Unknown Zone') { const option = document.createElement('option'); option.value = zone; option.textContent = zone; zoneSelect.appendChild(option); } });
+            if (uniqueZones.has('Unknown Zone')) { const option = document.createElement('option'); option.value = 'Unknown Zone'; option.textContent = 'Unknown / Not Specified'; zoneSelect.appendChild(option); }
         }
 
         function updateFiltersUI() {
-            assetTypeFiltersContainer.innerHTML = '';
-            const sortedAssetTypes = Array.from(assetTypes).sort();
-
-            if (sortedAssetTypes.length === 0 && uniqueZones.size === 0) {
-                const p = document.createElement('p');
-                p.style.cssText = "font-size:12px; color: #777; padding: 5px 0;";
-                p.textContent = "No asset types or zones found.";
-                assetTypeFiltersContainer.appendChild(p);
-                mapControlsPanel.style.display = 'block';
-                return;
-            }
-
-            if (sortedAssetTypes.length > 0) {
-                sortedAssetTypes.forEach((type) => {
-                    const color = colorMap[type];
-                    const checkboxId = `filter-${type.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`;
-                    const filterItem = document.createElement('div');
-                    filterItem.className = 'filter-item active';
-                    const label = document.createElement('label');
-                    label.htmlFor = checkboxId;
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox'; checkbox.id = checkboxId; checkbox.value = type; checkbox.checked = true;
-                    checkbox.addEventListener('change', (e) => {
-                        e.target.closest('.filter-item').classList.toggle('active', e.target.checked);
-                        applyAllFilters();
-                    });
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(type));
-                    filterItem.appendChild(label);
-                    filterItem.style.borderLeft = `3px solid ${color}`;
-                    assetTypeFiltersContainer.appendChild(filterItem);
-                });
-            } else {
-                 const p = document.createElement('p');
-                 p.style.cssText = "font-size:12px; color: #777; padding: 5px 0;";
-                 p.textContent = "No asset types found.";
-                 assetTypeFiltersContainer.appendChild(p);
-            }
-
-            populateZoneFilter();
-            createLegend();
-            mapControlsPanel.style.display = 'block';
+            assetTypeFiltersContainer.innerHTML = ''; const sortedAssetTypes = Array.from(assetTypes).sort();
+            if (sortedAssetTypes.length === 0 && uniqueZones.size === 0) { const p = document.createElement('p'); p.style.cssText = "font-size:12px; color: #777; padding: 5px 0;"; p.textContent = "No asset types or zones found."; assetTypeFiltersContainer.appendChild(p); mapControlsPanel.style.display = 'block'; return; }
+            if (sortedAssetTypes.length > 0) { sortedAssetTypes.forEach((type) => { const color = colorMap[type]; const checkboxId = `filter-${type.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}`; const filterItem = document.createElement('div'); filterItem.className = 'filter-item active'; const label = document.createElement('label'); label.htmlFor = checkboxId; const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = checkboxId; checkbox.value = type; checkbox.checked = true; checkbox.addEventListener('change', (e) => { e.target.closest('.filter-item').classList.toggle('active', e.target.checked); applyAllFilters(); }); label.appendChild(checkbox); label.appendChild(document.createTextNode(type)); filterItem.appendChild(label); filterItem.style.borderLeft = `3px solid ${color}`; assetTypeFiltersContainer.appendChild(filterItem); });
+            } else { const p = document.createElement('p'); p.style.cssText = "font-size:12px; color: #777; padding: 5px 0;"; p.textContent = "No asset types found."; assetTypeFiltersContainer.appendChild(p); }
+            populateZoneFilter(); createLegend(); mapControlsPanel.style.display = 'block';
         }
 
         function applyAllFilters() {
-            if (!filteredMarkersGroup) return;
-
-            filteredMarkersGroup.clearLayers();
-
-            const checkedAssetTypes = new Set();
-            assetTypeFiltersContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => checkedAssetTypes.add(cb.value));
-            const selectedZone = zoneSelect.value;
-            const searchTerm = searchInput.value.toLowerCase().trim();
-
-            let visibleMarkersCount = 0;
-
-            allMarkers.forEach(marker => {
-                const assetData = marker.assetData;
-                if (assetData) {
-                    let effectiveTypeMatch;
-                    if (assetTypes.size > 0 && checkedAssetTypes.size === 0) {
-                        effectiveTypeMatch = false;
-                    } else if (assetTypes.size === 0) {
-                        effectiveTypeMatch = true;
-                    } else {
-                        effectiveTypeMatch = checkedAssetTypes.has(assetData.type);
-                    }
-
-                    const zoneMatch = (selectedZone === 'all' || assetData.zone === selectedZone);
-
-                    let searchMatch = true;
-                    if (searchTerm) {
-                        searchMatch = (assetData.name.toLowerCase().includes(searchTerm) ||
-                                       assetData.description.toLowerCase().includes(searchTerm) ||
-                                       assetData.type.toLowerCase().includes(searchTerm) ||
-                                       (assetData.zone && assetData.zone.toLowerCase().includes(searchTerm)));
-                    }
-
-                    if (effectiveTypeMatch && zoneMatch && searchMatch) {
-                        filteredMarkersGroup.addLayer(marker);
-                        visibleMarkersCount++;
-                    }
-                }
-            });
+            if (!filteredMarkersGroup) return; filteredMarkersGroup.clearLayers();
+            const checkedAssetTypes = new Set(); assetTypeFiltersContainer.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => checkedAssetTypes.add(cb.value));
+            const selectedZone = zoneSelect.value; const searchTerm = searchInput.value.toLowerCase().trim();
+            allMarkers.forEach(marker => { const assetData = marker.assetData; if (assetData) { let effectiveTypeMatch; if (assetTypes.size > 0 && checkedAssetTypes.size === 0) { effectiveTypeMatch = false; } else if (assetTypes.size === 0) { effectiveTypeMatch = true; } else { effectiveTypeMatch = checkedAssetTypes.has(assetData.type); } const zoneMatch = (selectedZone === 'all' || assetData.zone === selectedZone); let searchMatch = true; if (searchTerm) { searchMatch = (assetData.name.toLowerCase().includes(searchTerm) || assetData.description.toLowerCase().includes(searchTerm) || assetData.type.toLowerCase().includes(searchTerm) || (assetData.zone && assetData.zone.toLowerCase().includes(searchTerm))); } if (effectiveTypeMatch && zoneMatch && searchMatch) { filteredMarkersGroup.addLayer(marker); } } });
         }
 
         reloadButton.addEventListener('click', () => loadDataAndPlot());
@@ -539,145 +443,63 @@
         searchInput.addEventListener('input', applyAllFilters);
 
         async function loadDataAndPlot() {
-            loadingSpinner.style.display = 'block';
-            hideMessages();
-            mapControlsPanel.style.display = 'none';
-            showStatus("Loading...");
-
+            loadingSpinner.style.display = 'block'; hideMessages(); mapControlsPanel.style.display = 'none'; showStatus("Loading...");
             try {
                 let csvText, lastError;
-                for (const proxy of CORS_PROXIES) {
-                    const uniqueParam = '&_=' + new Date().getTime();
-                    const urlToTry = proxy.url === '' ? GOOGLE_SHEET_CSV_URL + uniqueParam : proxy.url + (proxy.needsEncoding ? encodeURIComponent(GOOGLE_SHEET_CSV_URL + uniqueParam) : GOOGLE_SHEET_CSV_URL + uniqueParam);
-                    try {
-                        const response = await fetch(urlToTry, { method: 'GET', headers: proxy.url === '' ? { 'Accept': 'text/csv,text/plain,*/*' } : {}, mode: 'cors', cache: 'no-cache' });
-                        if (response && response.ok) {
-                            const text = await response.text();
-                            if (text && text.trim().length > 0 && !text.trim().toLowerCase().startsWith('<html')) {
-                                csvText = text;
-                                break;
-                            } else throw new Error(`Empty/HTML response from ${proxy.name}`);
-                        } else throw new Error(`HTTP ${response?.status || 'Err'}: ${response?.statusText || 'Fail'} from ${proxy.name}`);
-                    } catch (error) { lastError = error; console.warn(`❌ ${proxy.name} fail:`, error.message); }
-                }
+                for (const proxy of CORS_PROXIES) { const uniqueParam = '&_=' + new Date().getTime(); const urlToTry = proxy.url === '' ? GOOGLE_SHEET_CSV_URL + uniqueParam : proxy.url + (proxy.needsEncoding ? encodeURIComponent(GOOGLE_SHEET_CSV_URL + uniqueParam) : GOOGLE_SHEET_CSV_URL + uniqueParam); try { const response = await fetch(urlToTry, { method: 'GET', headers: proxy.url === '' ? { 'Accept': 'text/csv,text/plain,*/*' } : {}, mode: 'cors', cache: 'no-cache' }); if (response && response.ok) { const text = await response.text(); if (text && text.trim().length > 0 && !text.trim().toLowerCase().startsWith('<html')) { csvText = text; break; } else throw new Error(`Empty/HTML response from ${proxy.name}`); } else throw new Error(`HTTP ${response?.status || 'Err'}: ${response?.statusText || 'Fail'} from ${proxy.name}`); } catch (error) { lastError = error; console.warn(`❌ ${proxy.name} fail:`, error.message); } }
                 if (!csvText) throw new Error(`All methods failed. Last: ${lastError?.message || 'Unknown'}. Check Sheet permissions & network.`);
-
-                assetsData = parseCSV(csvText);
-                if (assetsData.length === 0) throw new Error('No data rows in CSV.');
-
-                allMarkers = [];
-                assetTypes.clear();
-                uniqueZones.clear();
-                colorMap = {};
-                searchInput.value = '';
-
-                if (filteredMarkersGroup) {
-                    filteredMarkersGroup.clearLayers();
-                } else {
-                    filteredMarkersGroup = L.featureGroup().addTo(map);
-                }
+                assetsData = parseCSV(csvText); if (assetsData.length === 0) throw new Error('No data rows in CSV.');
+                allMarkers = []; assetTypes.clear(); uniqueZones.clear(); colorMap = {}; searchInput.value = '';
+                if (filteredMarkersGroup) { filteredMarkersGroup.clearLayers(); } else { filteredMarkersGroup = L.featureGroup().addTo(map); }
                 if (legend) { map.removeControl(legend); legend = null; }
-
                 let processedCount = 0, skippedCount = 0, colorIndex = 0;
-
-                assetsData.forEach(asset => {
-                    const type = asset.AssetType || asset['Asset Type'] || asset.Type || asset.type || 'Unknown Type';
-                    if (!colorMap[type]) {
-                        colorMap[type] = asset.IconColor || asset['Icon Color'] || asset.Color || ASSET_COLORS[colorIndex % ASSET_COLORS.length];
-                        colorIndex++;
-                    }
-                });
-
+                assetsData.forEach(asset => { const type = asset.AssetType || asset['Asset Type'] || asset.Type || asset.type || 'Unknown Type'; if (!colorMap[type]) { colorMap[type] = asset.IconColor || asset['Icon Color'] || asset.Color || ASSET_COLORS[colorIndex % ASSET_COLORS.length]; colorIndex++; } });
                 assetsData.forEach((asset, index) => {
                     try {
-                        const lat = parseFloat(asset.Latitude || asset.latitude || asset.lat);
-                        const lon = parseFloat(asset.Longitude || asset.longitude || asset.lng || asset.lon);
+                        const lat = parseFloat(asset.Latitude || asset.latitude || asset.lat); const lon = parseFloat(asset.Longitude || asset.longitude || asset.lng || asset.lon);
                         const type = asset.AssetType || asset['Asset Type'] || asset.Type || asset.type || 'Unknown Type';
                         const zone = (asset.Zone || asset.zone || '').trim() || 'Unknown Zone';
-                        const name = asset.Name || asset.name || `Asset ${index + 1}`;
-                        const description = asset.Description || asset.description || 'N/A';
-                        const iconColor = colorMap[type];
-
-                        // --- START: MODIFIED ICON LOGIC ---
+                        const name = asset.Name || asset.name || `Asset ${index + 1}`; const description = asset.Description || asset.description || 'N/A';
+                        const iconColorForType = colorMap[type]; 
                         const markerStyleRaw = asset.MarkerStyle || asset['Marker Style'] || asset.marker_style || asset.IconStyle || asset['Icon Style'] || asset.icon_style;
                         const markerStyle = (markerStyleRaw || '').toLowerCase().trim();
-
-                        let markerIcon;
-                        let tooltipOffsetY;
-
+                        let markerIcon; let tooltipOffsetY;
                         switch (markerStyle) {
-                            case 'circle':
-                                markerIcon = createCircleIcon(iconColor);
-                                tooltipOffsetY = -((14 + 2*1)/2 + 5); // Approx center to top + padding
-                                break;
-                            case 'square':
-                                markerIcon = createSquareIcon(iconColor);
-                                tooltipOffsetY = -((14 + 2*1)/2 + 5); // Approx center to top + padding
-                                break;
-                            case 'teardrop':
-                            default:
-                                markerIcon = createTeardropPinIcon(iconColor);
-                                const teardropIconSize = (12 + (2 * 2) + 4);
-                                tooltipOffsetY = -(teardropIconSize * 0.9); // Adjusted for teardrop anchor
-                                break;
+                            case 'circle': markerIcon = createCircleIcon(iconColorForType); tooltipOffsetY = -((14 + 2*1)/2 + 5); break;
+                            case 'square': markerIcon = createSquareIcon(iconColorForType); tooltipOffsetY = -((14 + 2*1)/2 + 5); break;
+                            case 'pushpin_micro': markerIcon = createPushPinIcon(iconColorForType); tooltipOffsetY = -(markerIcon.options.iconSize[1] + 2); break; break;
+                            case 'pushpin': markerIcon = createPushPinIcon(iconColorForType); tooltipOffsetY = -(markerIcon.options.iconSize[1] + 2); break; // 16x24
+                            case 'loco': markerIcon = createLocoIcon(iconColorForType); tooltipOffsetY = -(markerIcon.options.iconSize[1] + 2); break; // 20x12
+                            default: markerIcon = createTeardropPinIcon(iconColorForType); const defaultIconSize = (12 + (2 * 2) + 4); tooltipOffsetY = -(defaultIconSize * 0.9); break;
                         }
-                        // --- END: MODIFIED ICON LOGIC ---
-
-
                         if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180 && (lat !== 0 || lon !== 0)) {
-                            assetTypes.add(type);
-                            uniqueZones.add(zone);
-
-                            const marker = L.marker([lat, lon], { icon: markerIcon }); // Use the dynamically chosen icon
-                            marker.assetData = {
-                                type: type,
-                                zone: zone,
-                                name: name,
-                                description: description,
-                                lat: lat,
-                                lon: lon
-                            };
-
-                            const popupContent = `<div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;"><h3 style="margin:0 0 8px;color:${iconColor};border-bottom:1px solid ${iconColor};padding-bottom:4px;font-size:16px;">${name}</h3><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Type:</strong> <span style="color:${iconColor};">${type}</span></p><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Zone:</strong> ${zone === 'Unknown Zone' ? 'N/A' : zone}</p><p style="margin:8px 0;color:#444;line-height:1.4;font-size:13px;">${description}</p><p style="margin:4px 0;font-size:11px;color:#777;">Coords: ${lat.toFixed(4)}, ${lon.toFixed(4)}</p></div>`;
+                            assetTypes.add(type); uniqueZones.add(zone);
+                            const marker = L.marker([lat, lon], { icon: markerIcon });
+                            marker.assetData = { type, zone, name, description, lat, lon, markerStyle: markerStyle };
+                            const popupContent = `<div style="font-family: 'Segoe UI', sans-serif; min-width: 180px;"><h3 style="margin:0 0 8px;color:${iconColorForType};border-bottom:1px solid ${iconColorForType};padding-bottom:4px;font-size:16px;">${name}</h3><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Type:</strong> <span style="color:${iconColorForType};">${type}</span></p><p style="margin:4px 0;font-size:13px;"><strong style="color:#555;">Zone:</strong> ${zone === 'Unknown Zone' ? 'N/A' : zone}</p><p style="margin:8px 0;color:#444;line-height:1.4;font-size:13px;">${description}</p><p style="margin:4px 0;font-size:11px;color:#777;">Coords: ${lat.toFixed(4)}, ${lon.toFixed(4)}</p></div>`;
                             marker.bindPopup(popupContent, { maxWidth: 280, className: 'custom-popup' });
-
                             marker.bindTooltip(name, { permanent: false, direction: 'top', offset: [0, tooltipOffsetY], className: 'custom-tooltip' });
                             marker.on('mouseover', function(e) { this.openTooltip(); });
-
-                            allMarkers.push(marker);
-                            processedCount++;
+                            allMarkers.push(marker); processedCount++;
                         } else { skippedCount++; }
                     } catch (error) { skippedCount++; console.warn(`Err processing asset ${index + 1}:`, error); }
                 });
-
-                if (processedCount === 0 && assetsData.length > 0) {
-                     throw new Error(`No valid markers could be created from ${assetsData.length} rows. ${skippedCount} skipped. Check Lat/Lon data format.`);
-                } else if (processedCount === 0) {
-                     throw new Error(`No data or no valid markers found.`);
-                }
-
-                updateFiltersUI();
-                applyAllFilters();
-
-                showStatus("Successfully Loaded");
+                if (processedCount === 0 && assetsData.length > 0) { throw new Error(`No valid markers could be created from ${assetsData.length} rows. ${skippedCount} skipped. Check Lat/Lon data format.`); }
+                else if (processedCount === 0) { throw new Error(`No data or no valid markers found.`); }
+                updateFiltersUI(); applyAllFilters(); showStatus("Successfully Loaded");
                 if (allMarkers.length > 0) {
                     const boundsGroup = filteredMarkersGroup.getLayers().length > 0 ? filteredMarkersGroup : L.featureGroup(allMarkers);
                     if (boundsGroup.getLayers().length > 0) {
                         map.fitBounds(boundsGroup.getBounds().pad(0.15));
-                    } else if (allMarkers.length > 0) { // Fallback if all are filtered out initially
+                        const currentBoundsZoom = map.getZoom(); if (currentBoundsZoom < (map.options.maxZoom || 18) ) map.setZoom(currentBoundsZoom + 1);
+                    } else if (allMarkers.length > 0) {
                         map.fitBounds(L.featureGroup(allMarkers).getBounds().pad(0.15));
+                        const currentBoundsZoom = map.getZoom(); if (currentBoundsZoom < (map.options.maxZoom || 18) ) map.setZoom(currentBoundsZoom + 1);
                     }
                 }
                 setTimeout(hideMessages, 5000);
-
-            } catch (error) {
-                showError("Loading Failed");
-                console.error("Detailed loading error:", error.message, error);
-                mapControlsPanel.style.display = 'block'; // Show controls even on fail
-                updateFiltersUI(); // Try to populate with what might be available
-            } finally {
-                loadingSpinner.style.display = 'none';
-            }
+            } catch (error) { showError("Loading Failed"); console.error("Detailed loading error:", error.message, error); mapControlsPanel.style.display = 'block'; updateFiltersUI(); }
+            finally { loadingSpinner.style.display = 'none'; }
         }
         loadDataAndPlot();
     </script>
